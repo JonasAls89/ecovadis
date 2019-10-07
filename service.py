@@ -4,7 +4,7 @@ import requests
 import logging
 import os
 import sys
-from processing.feature import dict_merger
+from processing.feature import dict_merger, get_token
 from sesamutils import VariablesConfig 
 
 app = Flask(__name__)
@@ -13,16 +13,27 @@ app = Flask(__name__)
 try:
     with open("helpers.json", "r") as stream:
         env_vars = stream.read()
-        username = env_vars[19:41]
-        password = env_vars[61:78]
+        os.environ['username'] = env_vars[19:41]
+        os.environ['password'] = env_vars[61:78]
 except OSError as e:
-    username = os.getenv('username')
-    password = os.getenv('password')
+    app.logger.info("Using env vars defined in SESAM")
 
 ## Helpers
-grant_type = "password"
 logger = None
 required_env_vars = ['username', 'password']
+username = os.getenv('username')
+password = os.getenv('password')
+
+payload = {
+        'grant_type': "password",
+        'username' : username,
+        'password' : password
+}
+
+headers = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json'
+}  
 ##
 
 @app.route('/')
@@ -33,8 +44,8 @@ def index():
     }
     return jsonify(output)
 
-@app.route('/entities/get', methods=['GET','POST'])
-def get_data():
+@app.route('/entities/get/<path>', methods=['GET','POST'])
+def get_data(path):
     app.logger.info(f"Ecovadis is running")
     ## Validating env vars
     config = VariablesConfig(required_env_vars)
@@ -42,52 +53,32 @@ def get_data():
     if not config.validate():
         sys.exit(1)
 
-    request_body = request.get_json()
+    request_body = request.get_json()  
 
-    payload = {
-        'grant_type': grant_type,
-        'username' : username,
-        'password' : password
-    }    
-
-    ## Generating token and checking response
-    generate_url = "https://www.james.com"
-    check_response = requests.get(generate_url)
-    if not check_response.ok:
-        app.logger.error(f"Access token request failed. Error: {check_response.content}")
-        raise
-    valid_response = check_response.json()
-    token = {'Authorization' : 'Bearer ' + valid_response['token']}
-    ##
+    token = get_token(headers, payload)
 
     ## Requesting data
-    request_url = f"https://services.com"
+    request_url = f"https://api-sandbox.ecovadis-survey.com/v2.0/{path}"
     #app.logger.info(request_url)
     data = requests.get(request_url, headers=token)
     if not data.ok:
         app.logger.error(f"Unexpected response status code: {data.content}")
         return f"Unexpected error : {data.content}", 500
         raise
-    #app.logger.info(f"returning call with status code {data.json()}")
+    
     try:
-        data_transform = data.json()['features'][0]
-        data_transform["data"] = data_transform.pop("attributes")
+        data_transform = data.json()
     except IndexError as e:
         app.logger.error(f"exiting with error {e}")
-        data_transform = default_response
     except KeyError as e:
         app.logger.error(f"exiting with error {e}")
-        data_transform = default_response
 
-    sesam_dict = dict_merger(dict(request_body[0]), dict(data_transform))
-    ##
-
-    return Response(json.dumps(sesam_dict), mimetype='application/json')
+    return Response(json.dumps(data_transform), mimetype='application/json')
 
 if __name__ == '__main__':
     # Set up logging
     format_string = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    logger = logging.getLogger('EcoVadis Wabbalabbadabdab')
+    logger = logging.getLogger('EcoVadis up and ready for use')
 
     # Log to stdout
     stdout_handler = logging.StreamHandler()
