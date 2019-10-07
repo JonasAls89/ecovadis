@@ -38,8 +38,46 @@ Make sure the required env variables are defined.
 
 #### System config :
 
+```
+    {
+    "_id": "ecovadis",
+    "type": "system:microservice",
+    "docker": {
+        "environment": {
+        "password": "$SECRET(ecovadis-password)",
+        "username": "$ENV(ecovadis-username)"
+        },
+        "image": "sesamcommunity/ecovadis:latest",
+        "port": 5000
+    },
+    "verify_ssl": true
+    }
+```
 
-#### Pipe config :
+#### Example Pipe config :
+
+```
+    {
+    "_id": "ecovadis-evdata",
+    "type": "pipe",
+    "source": {
+        "type": "json",
+        "system": "ecovadis",
+        "url": "/entities/get/EVData"
+    },
+    "transform": {
+        "type": "dtl",
+        "rules": {
+        "default": [
+            ["copy", "*"],
+            ["add", "_id",
+            ["string", "_S.evid"]
+            ]
+        ]
+        }
+    }
+    }
+```
 
 ## Routes
 This connector works using dynamic routing when requesting data from the Ecovadis API. In your browser, you can therefore set specific query parameters for each resource, i.e. "EVData", which results in :
