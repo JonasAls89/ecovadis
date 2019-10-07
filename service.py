@@ -4,7 +4,8 @@ import requests
 import logging
 import os
 import sys
-from processing.feature import check_env_variables, dict_merger
+from processing.feature import dict_merger
+from sesamutils import VariablesConfig 
 
 app = Flask(__name__)
 
@@ -14,7 +15,6 @@ password = os.getenv('password')
 logger = None
 
 required_env_vars = ['username', 'password']
-missing_env_vars = list() 
 
 @app.route('/')
 def index():
@@ -28,11 +28,15 @@ def index():
 def get_data():
     app.logger.info(f"Ecovadis is running")
     ## Validating env vars
-    check_env_variables(required_env_vars, missing_env_vars)
-    
-    if len(missing_env_vars) != 0:
-        app.logger.error(f"Missing the following required environment variable(s) {missing_env_vars}")
+    ##check_env_variables(required_env_vars, missing_env_vars)
+    config = VariablesConfig(required_env_vars)
+
+    if not config.validate():
         sys.exit(1)
+
+    ##if len(missing_env_vars) != 0:
+    ##    app.logger.error(f"Missing the following required environment variable(s) {missing_env_vars}")
+    ##    sys.exit(1)
     ##
 
     request_body = request.get_json()
