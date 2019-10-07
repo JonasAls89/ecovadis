@@ -1,0 +1,14 @@
+{
+    "name": "EcoVadis",
+    "private": false,
+    "version": "0.0.1",
+    "description": "A repo for connecting to the EcoVadis API",
+    "author": "jonas.christensen@sesam.io",
+    "license": "MIT",
+    "scripts": {
+        "stop": "lsof -t -i tcp:5000 | xargs kill -9",
+        "deploy": "",
+        "install": "sudo pip3 install -r requirements.txt",
+        "swagger": "python3 service.py"
+      }
+  }
