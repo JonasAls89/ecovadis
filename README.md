@@ -36,10 +36,10 @@ Make sure the required env variables are defined.
 
 *Use program as a SESAM connector*
 
-####System config :
+#### System config :
 
 
-####Pipe config :
+#### Pipe config :
 
 ## Routes
 This connector works using dynamic routing when requesting data from the Ecovadis API. In your browser, you can therefore set specific query parameters for each resource, i.e. "EVData", which results in :
