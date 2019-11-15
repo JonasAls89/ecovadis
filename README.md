@@ -25,7 +25,7 @@ This repo uses the file ```package.json``` and [yarn](https://yarnpkg.com/lang/e
     ```
         yarn install
     ```
-4. run to run the script:
+4. execute to run the script:
     ```
         yarn swagger
     ```
