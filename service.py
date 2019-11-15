@@ -33,7 +33,25 @@ payload = {
 headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
         'Accept': 'application/json'
-}  
+}
+
+##Helper function for yielding on batch fetch
+def stream_json(entities):
+    app.logger.info("streaming started")
+    try:
+        first = True
+        yield '['
+        for i, row in enumerate(entities):
+            if not first:
+                yield ','
+            else:
+                first = False
+            
+            yield json.dumps(row)     
+        yield ']'
+    except Exception as e:
+        app.logger.error(f"Exiting with error : {e}")
+    app.logger.info("stream ended")
 ##
 
 @app.route('/')
@@ -73,7 +91,7 @@ def get_data(path):
     except KeyError as e:
         app.logger.error(f"exiting with error {e}")
 
-    return Response(json.dumps(data_transform), mimetype='application/json')
+    return Response(stream_json(data_transform), mimetype='application/json')
 
 if __name__ == '__main__':
     # Set up logging
