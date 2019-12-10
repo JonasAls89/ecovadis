@@ -47,7 +47,7 @@ def stream_json(entities):
             else:
                 first = False
             
-            yield json.dumps(row)     
+            yield json.dumps(row)
         yield ']'
     except Exception as e:
         app.logger.error(f"Exiting with error : {e}")
@@ -85,7 +85,7 @@ def get_data(path):
         raise
     
     try:
-        data_transform = data.json()
+        data_transform = json.loads(data.content.decode('utf-8-sig'))
     except IndexError as e:
         app.logger.error(f"exiting with error {e}")
     except KeyError as e:
