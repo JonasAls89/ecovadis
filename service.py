@@ -68,6 +68,8 @@ def index():
 
 @app.route('/entities/get/<path>', methods=['GET','POST'])
 def get_data(path):
+    page_size = request.args.get("page_size")
+    max_number = request.args.get("page_number") # Set this to the last page to get all resources
     logger.info(f"Ecovadis is running")
     ## Validating env vars
     config = VariablesConfig(required_env_vars)
@@ -77,22 +79,31 @@ def get_data(path):
 
     token = get_token(headers, payload, base_url)
 
+    ## Helpers for paged entities
+    page_number = []
+    all_pages = list(range(1, int(max_number)+1))
+    page_number.append(all_pages)
+
     ## Requesting data
     request_url = f"{base_url}/v2.0/{path}"
+    
+    paged_result = []
+    for page in page_number[0]:
+        logger.info(f"Getting result for page : {page}")
+        data = requests.get(f"{request_url}?page_size={page_size}&page_number={page}", headers=token)
+        if not data.ok:
+            logger.error(f"Unexpected response status code: {data.content}")
+            return f"Unexpected error : {data.content}", 500
+        else:
+            try:
+                decoded_data = json.loads(data.content.decode('utf-8-sig'))
+                paged_result.append(decoded_data)
+            except IndexError as e:
+                logger.error(f"failed with error {e}")
+            except KeyError as e:
+                logger.error(f"failed with error {e}")
 
-    data = requests.get(request_url, headers=token)
-    if not data.ok:
-        logger.error(f"Unexpected response status code: {data.content}")
-        return f"Unexpected error : {data.content}", 500
-
-    try:
-        data_transform = json.loads(data.content.decode('utf-8-sig'))
-    except IndexError as e:
-        logger.error(f"exiting with error {e}")
-    except KeyError as e:
-        logger.error(f"exiting with error {e}")
-
-    return Response(stream_json(data_transform), mimetype='application/json')
+    return Response(stream_json(paged_result), mimetype='application/json')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True, threaded=True)

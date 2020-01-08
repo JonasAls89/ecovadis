@@ -85,5 +85,5 @@ Make sure the required env variables are defined.
 This connector works using dynamic routing when requesting data from the Ecovadis API. In your browser, you can therefore set specific query parameters for each resource, i.e. "EVData", which results in :
 
 ```
-    /entities/get/EVData
+    /entities/get/EVData?page_size=100&page_number=<set to max page_number>
 ```
