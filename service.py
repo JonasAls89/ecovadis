@@ -13,15 +13,20 @@ logger = sesam_logger("Steve the logger", app=app)
 try:
     with open("helpers.json", "r") as stream:
         env_vars = stream.read()
-        os.environ['username'] = env_vars[19:41]
-        os.environ['password'] = env_vars[61:78]
+        #os.environ['username'] = env_vars[19:41]
+        #os.environ['password'] = env_vars[61:78]
+        #os.environ['base_url'] = env_vars[98:137]
+        os.environ['username'] = env_vars[19:34]
+        os.environ['password'] = env_vars[54:71]
+        os.environ['base_url'] = env_vars[91:122]
 except OSError as e:
     logger.info("Using env vars defined in SESAM")
 
 ## Helpers
-required_env_vars = ['username', 'password']
+required_env_vars = ['username', 'password', 'base_url']
 username = os.getenv('username')
 password = os.getenv('password')
+base_url = os.getenv('base_url')
 
 payload = {
         'grant_type': "password",
@@ -70,11 +75,11 @@ def get_data(path):
     if not config.validate():
         sys.exit(1) 
 
-    token = get_token(headers, payload)
+    token = get_token(headers, payload, base_url)
 
     ## Requesting data
-    request_url = f"https://api-sandbox.ecovadis-survey.com/v2.0/{path}"
-    #logger.info(request_url)
+    request_url = f"{base_url}/v2.0/{path}"
+
     data = requests.get(request_url, headers=token)
     if not data.ok:
         logger.error(f"Unexpected response status code: {data.content}")
