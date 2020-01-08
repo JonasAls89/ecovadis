@@ -19,6 +19,7 @@ This repo uses the file ```package.json``` and [yarn](https://yarnpkg.com/lang/e
 {
     "username": "some username",
     "password": "some password"
+    "base_url": "some url"
 }
 ```
 3. run:
@@ -45,7 +46,8 @@ Make sure the required env variables are defined.
     "docker": {
         "environment": {
         "password": "$SECRET(ecovadis-password)",
-        "username": "$ENV(ecovadis-username)"
+        "username": "$ENV(ecovadis-username)",
+        "base_url": $ENV(ecovadis-base_url)"
         },
         "image": "sesamcommunity/ecovadis:latest",
         "port": 5000
