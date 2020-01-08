@@ -87,14 +87,21 @@ def get_data(path):
     ## Requesting data
     request_url = f"{base_url}/v2.0/{path}"
     
+    successful_page = None
     paged_result = []
     for page in page_number[0]:
         logger.info(f"Getting result for page : {page}")
         data = requests.get(f"{request_url}?page_size={page_size}&page_number={page}", headers=token)
         if not data.ok:
             logger.error(f"Unexpected response status code: {data.content}")
+            if data.content == b'{"Message":"Page number out of range"}':
+                logger.error(f"Last successful paged entity was page number : {successful_page}")
+                logger.info(f"To avoid this error set the query parameter 'page_number' to be equal to {successful_page}")
+                
+                return Response(stream_json(paged_result), mimetype='application/json')
             return f"Unexpected error : {data.content}", 500
         else:
+            successful_page = page
             try:
                 decoded_data = json.loads(data.content.decode('utf-8-sig'))
                 paged_result.append(decoded_data)
