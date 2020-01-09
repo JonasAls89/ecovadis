@@ -24,7 +24,6 @@ required_env_vars = ['username', 'password', 'base_url']
 optional_env_vars = ["page_size"]
 username = os.getenv('username')
 password = os.getenv('password')
-base_url = os.getenv('base_url')
 
 payload = {
         'grant_type': "password",
@@ -78,10 +77,10 @@ def get_data(path):
     except Exception:
         page_size = None 
 
-    token = get_token(headers, payload, base_url)
+    token = get_token(headers, payload, config.base_url)
 
     ## Requesting data
-    request_url = f"{base_url}/v2.0/{path}"
+    request_url = f"{config.base_url}/v2.0/{path}"
     
     successful_page = None
     page_number = []
@@ -147,7 +146,7 @@ def get_data(path):
         decoded_data = json.loads(data.content.decode('utf-8-sig'))
         paged_result.append(decoded_data)
         if int(max_page) > 1:
-            all_pages = list(range(1, int(max_page)+1))
+            all_pages = list(range(2, int(max_page)+1))
             page_number.append(all_pages)
             for page in page_number[0]:
                 logger.info(f"Getting result for page : {page}")

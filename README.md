@@ -48,7 +48,7 @@ Make sure the required env variables are defined.
         "password": "$SECRET(ecovadis-password)",
         "username": "$ENV(ecovadis-username)",
         "base_url": "$ENV(ecovadis-base_url)",
-        "page_size": "$ENV(ecovadis-base_url)" <- this one is optional
+        "page_size": "$ENV(page_size)" <- this one is optional
         },
         "image": "sesamcommunity/ecovadis:latest",
         "port": 5000
