@@ -47,7 +47,8 @@ Make sure the required env variables are defined.
         "environment": {
         "password": "$SECRET(ecovadis-password)",
         "username": "$ENV(ecovadis-username)",
-        "base_url": $ENV(ecovadis-base_url)"
+        "base_url": "$ENV(ecovadis-base_url)",
+        "page_size": "$ENV(ecovadis-base_url)" <- this one is optional
         },
         "image": "sesamcommunity/ecovadis:latest",
         "port": 5000
@@ -85,5 +86,5 @@ Make sure the required env variables are defined.
 This connector works using dynamic routing when requesting data from the Ecovadis API. In your browser, you can therefore set specific query parameters for each resource, i.e. "EVData", which results in :
 
 ```
-    /entities/get/EVData?page_size=100&page_number=<set to max page_number>
+    /entities/get/EVData
 ```

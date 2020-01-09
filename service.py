@@ -13,9 +13,6 @@ logger = sesam_logger("Steve the logger", app=app)
 try:
     with open("helpers.json", "r") as stream:
         env_vars = stream.read()
-        #os.environ['username'] = env_vars[19:41]
-        #os.environ['password'] = env_vars[61:78]
-        #os.environ['base_url'] = env_vars[98:137]
         os.environ['username'] = env_vars[19:34]
         os.environ['password'] = env_vars[54:71]
         os.environ['base_url'] = env_vars[91:122]
@@ -24,6 +21,7 @@ except OSError as e:
 
 ## Helpers
 required_env_vars = ['username', 'password', 'base_url']
+optional_env_vars = ["page_size"]
 username = os.getenv('username')
 password = os.getenv('password')
 base_url = os.getenv('base_url')
@@ -68,40 +66,112 @@ def index():
 
 @app.route('/entities/get/<path>', methods=['GET','POST'])
 def get_data(path):
-    page_size = request.args.get("page_size")
-    max_number = request.args.get("page_number") # Set this to the last page to get all resources
     logger.info(f"Ecovadis is running")
     ## Validating env vars
-    config = VariablesConfig(required_env_vars)
+    config = VariablesConfig(required_env_vars, optional_env_vars)
 
     if not config.validate():
-        sys.exit(1) 
+        sys.exit(1)
+
+    try:
+        page_size = config.page_size
+    except Exception:
+        page_size = None 
 
     token = get_token(headers, payload, base_url)
-
-    ## Helpers for paged entities
-    page_number = []
-    all_pages = list(range(1, int(max_number)+1))
-    page_number.append(all_pages)
 
     ## Requesting data
     request_url = f"{base_url}/v2.0/{path}"
     
     successful_page = None
+    page_number = []
     paged_result = []
-    for page in page_number[0]:
-        logger.info(f"Getting result for page : {page}")
-        data = requests.get(f"{request_url}?page_size={page_size}&page_number={page}", headers=token)
-        if not data.ok:
-            logger.error(f"Unexpected response status code: {data.content}")
-            if data.content == b'{"Message":"Page number out of range"}':
-                logger.error(f"Last successful paged entity was page number : {successful_page}")
-                logger.info(f"To avoid this error set the query parameter 'page_number' to be equal to {successful_page}")
+    if page_size is not None:
+            logger.info(f"Running with env var page_size. page_size is set to {page_size}")
+            data = requests.get(f"{request_url}?page_size={page_size}", headers=token)
+            logger.info(f"Getting result for page : 1")
+            if not data.ok:
+                logger.error(f"Unexpected response status code: {data.content}")
+                return f"Unexpected error : {data.content}", 500
+            ## Helpers for paged entities
+            pages = data.headers['Requested-Page-Number']
+            min_page, max_page = pages.split("/", 1)
+            if int(max_page) > 1:
+                decoded_data = json.loads(data.content.decode('utf-8-sig'))
+                paged_result.append(decoded_data)
+                all_pages = list(range(2, int(max_page)+1))
+                page_number.append(all_pages)
+                for page in page_number[0]:
+                    logger.info(f"Getting result for page : {page}")
+                    data = requests.get(f"{request_url}?page_size={page_size}&page_number={page}", headers=token)
+                    if not data.ok:
+                        logger.error(f"Unexpected response status code: {data.content}")
+                        if data.content == b'{"Message":"Page number out of range"}':
+                            logger.error(f"Last successful paged entity was page number : {successful_page}")
+                            logger.info(f"To avoid this error set the query parameter 'page_number' to be equal to {successful_page}")
+
+                            return Response(stream_json(paged_result), mimetype='application/json')
+                    else:
+                        successful_page = page
+                        try:
+                            decoded_data = json.loads(data.content.decode('utf-8-sig'))
+                            paged_result.append(decoded_data)
+                        except IndexError as e:
+                            logger.error(f"failed with error {e}")
+                        except KeyError as e:
+                            logger.error(f"failed with error {e}")
+                            
+                return Response(stream_json(paged_result), mimetype='application/json')
+            
+            else:
+                try:
+                    decoded_data = json.loads(data.content.decode('utf-8-sig'))
+                    paged_result.append(decoded_data)
+                except IndexError as e:
+                    logger.error(f"failed with error {e}")
+                except KeyError as e:
+                    logger.error(f"failed with error {e}")
                 
                 return Response(stream_json(paged_result), mimetype='application/json')
+      
+    else:
+        logger.info(f"Running without the env var page_size. Setting default page_size to 500")
+        data = requests.get(f"{request_url}?page_size=500", headers=token)
+        logger.info(f"Getting result for page : 1")
+        if not data.ok:
+            logger.error(f"Unexpected response status code: {data.content}")
             return f"Unexpected error : {data.content}", 500
+        ## Helpers for paged entities
+        pages = data.headers['Requested-Page-Number']
+        min_page, max_page = pages.split("/", 1)
+        decoded_data = json.loads(data.content.decode('utf-8-sig'))
+        paged_result.append(decoded_data)
+        if int(max_page) > 1:
+            all_pages = list(range(1, int(max_page)+1))
+            page_number.append(all_pages)
+            for page in page_number[0]:
+                logger.info(f"Getting result for page : {page}")
+                data = requests.get(f"{request_url}?page_size=500&page_number={page}", headers=token)
+                if not data.ok:
+                    logger.error(f"Unexpected response status code: {data.content}")
+                    if data.content == b'{"Message":"Page number out of range"}':
+                        logger.error(f"Last successful paged entity was page number : {successful_page}")
+                        logger.info(f"To avoid this error set the query parameter 'page_number' to be equal to {successful_page}")
+                        
+                        return Response(stream_json(paged_result), mimetype='application/json')
+                else:
+                    successful_page = page
+                    try:
+                        decoded_data = json.loads(data.content.decode('utf-8-sig'))
+                        paged_result.append(decoded_data)
+                    except IndexError as e:
+                        logger.error(f"failed with error {e}")
+                    except KeyError as e:
+                        logger.error(f"failed with error {e}")
+                        
+            return Response(stream_json(paged_result), mimetype='application/json')
+        
         else:
-            successful_page = page
             try:
                 decoded_data = json.loads(data.content.decode('utf-8-sig'))
                 paged_result.append(decoded_data)
@@ -109,8 +179,9 @@ def get_data(path):
                 logger.error(f"failed with error {e}")
             except KeyError as e:
                 logger.error(f"failed with error {e}")
+            
+            return Response(stream_json(paged_result), mimetype='application/json')
 
-    return Response(stream_json(paged_result), mimetype='application/json')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True, threaded=True)
