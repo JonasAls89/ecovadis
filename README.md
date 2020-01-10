@@ -6,6 +6,7 @@ python3
 
 ## API Capabalities
 Supports GET
+
 Supports page_size and paging
 
 ## How to:
