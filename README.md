@@ -5,7 +5,8 @@ A connector for using the EcoVadis API
 python3
 
 ## API Capabalities
-to come...
+Supports GET
+Supports page_size and paging
 
 ## How to:
 
