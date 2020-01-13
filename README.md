@@ -74,10 +74,7 @@ Make sure the required env variables are defined.
         "type": "dtl",
         "rules": {
         "default": [
-            ["copy", "*"],
-            ["add", "_id",
-            ["string", "_S.evid"]
-            ]
+            ["copy", "*"]
         ]
         }
     }
