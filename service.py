@@ -97,7 +97,7 @@ def get_data(path):
     min_page, max_page = pages.split("/", 1)
     if int(max_page) > 1:
         decoded_data = json.loads(data.content.decode('utf-8-sig'))
-        paged_result.append(decoded_data)
+        paged_result.extend(decoded_data)
         all_pages = list(range(2, int(max_page)+1))
         pager_numbers.append(all_pages)
         for page in pager_numbers[0]:
@@ -109,30 +109,30 @@ def get_data(path):
                     logger.error(f"Last successful paged entity was page number : {successful_page}")
                     logger.info(f"To avoid this error set the query parameter 'page_number' to be equal to {successful_page}")
 
-                    return Response(stream_json(paged_result[0]), mimetype='application/json')
+                    return Response(stream_json(paged_result), mimetype='application/json')
             else:
                 successful_page = page
                 try:
                     decoded_data = json.loads(data.content.decode('utf-8-sig'))
-                    paged_result.append(decoded_data)
+                    paged_result.extend(decoded_data)
                 except IndexError as e:
                     logger.error(f"failed with error {e}")
                 except KeyError as e:
                     logger.error(f"failed with error {e}")
                     
-        return Response(stream_json(paged_result[0]), mimetype='application/json')
+        return Response(stream_json(paged_result), mimetype='application/json')
     
     else:
         logger.info(f"No paging need detected...")
         try:
             decoded_data = json.loads(data.content.decode('utf-8-sig'))
-            paged_result.append(decoded_data)
+            paged_result.extend(decoded_data)
         except IndexError as e:
             logger.error(f"failed with error {e}")
         except KeyError as e:
             logger.error(f"failed with error {e}")
         
-        return Response(stream_json(paged_result[0]), mimetype='application/json')
+        return Response(stream_json(paged_result), mimetype='application/json')
 
 
 if __name__ == '__main__':
