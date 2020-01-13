@@ -109,7 +109,7 @@ def get_data(path):
                     logger.error(f"Last successful paged entity was page number : {successful_page}")
                     logger.info(f"To avoid this error set the query parameter 'page_number' to be equal to {successful_page}")
 
-                    return Response(stream_json(paged_result), mimetype='application/json')
+                    return Response(stream_json(paged_result[0]), mimetype='application/json')
             else:
                 successful_page = page
                 try:
@@ -120,7 +120,7 @@ def get_data(path):
                 except KeyError as e:
                     logger.error(f"failed with error {e}")
                     
-        return Response(stream_json(paged_result), mimetype='application/json')
+        return Response(stream_json(paged_result[0]), mimetype='application/json')
     
     else:
         logger.info(f"No paging need detected...")
@@ -132,7 +132,7 @@ def get_data(path):
         except KeyError as e:
             logger.error(f"failed with error {e}")
         
-        return Response(stream_json(paged_result), mimetype='application/json')
+        return Response(stream_json(paged_result[0]), mimetype='application/json')
 
 
 if __name__ == '__main__':
