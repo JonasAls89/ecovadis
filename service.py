@@ -97,7 +97,14 @@ def get_data(path):
     min_page, max_page = pages.split("/", 1)
     if int(max_page) > 1:
         decoded_data = json.loads(data.content.decode('utf-8-sig'))
-        paged_result.extend(decoded_data)
+        for data in decoded_data:
+            for element in data["integration_ids"]:
+                if len(element) == 7:
+                    data["integration_ids"] = element
+                    paged_result.append(data)
+                else:
+                    pass
+        
         all_pages = list(range(2, int(max_page)+1))
         pager_numbers.append(all_pages)
         for page in pager_numbers[0]:
@@ -114,7 +121,14 @@ def get_data(path):
                 successful_page = page
                 try:
                     decoded_data = json.loads(data.content.decode('utf-8-sig'))
-                    paged_result.extend(decoded_data)
+                    for data in decoded_data:
+                        for element in data["integration_ids"]:
+                            if len(element) == 7:
+                                data["integration_ids"] = element
+                                paged_result.append(data)
+                            else:
+                                pass         
+                
                 except IndexError as e:
                     logger.error(f"failed with error {e}")
                 except KeyError as e:
@@ -126,7 +140,14 @@ def get_data(path):
         logger.info(f"No paging need detected...")
         try:
             decoded_data = json.loads(data.content.decode('utf-8-sig'))
-            paged_result.extend(decoded_data)
+            for data in decoded_data:
+                for element in data["integration_ids"]:
+                    if len(element) == 7:
+                        data["integration_ids"] = element
+                        paged_result.append(data)
+                    else:
+                        pass
+
         except IndexError as e:
             logger.error(f"failed with error {e}")
         except KeyError as e:
