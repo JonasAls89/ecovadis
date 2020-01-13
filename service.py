@@ -98,12 +98,16 @@ def get_data(path):
     if int(max_page) > 1:
         decoded_data = json.loads(data.content.decode('utf-8-sig'))
         for data in decoded_data:
-            for element in data["integration_ids"]:
-                if len(element) == 7:
-                    data["integration_ids"] = element
+            try:
+                for element in data["integration_ids"]:
+                    if len(element) == 7 and "wave" not in element.lower() and "old" not in element.lower():
+                        data["_id"] = element
+                        paged_result.append(data)
+                    else:
+                        pass
+            except Exception:
+                for element in data:
                     paged_result.append(data)
-                else:
-                    pass
         
         all_pages = list(range(2, int(max_page)+1))
         pager_numbers.append(all_pages)
@@ -122,12 +126,16 @@ def get_data(path):
                 try:
                     decoded_data = json.loads(data.content.decode('utf-8-sig'))
                     for data in decoded_data:
-                        for element in data["integration_ids"]:
-                            if len(element) == 7:
-                                data["integration_ids"] = element
-                                paged_result.append(data)
-                            else:
-                                pass         
+                        try:
+                            for element in data["integration_ids"]:
+                                if len(element) == 7 and "wave" not in element.lower() and "old" not in element.lower():
+                                    data["_id"] = element
+                                    paged_result.append(data)
+                                else:
+                                    pass
+                        except Exception:
+                            for element in data:
+                                paged_result.append(data)         
                 
                 except IndexError as e:
                     logger.error(f"failed with error {e}")
@@ -141,13 +149,17 @@ def get_data(path):
         try:
             decoded_data = json.loads(data.content.decode('utf-8-sig'))
             for data in decoded_data:
-                for element in data["integration_ids"]:
-                    if len(element) == 7:
-                        data["integration_ids"] = element
+                try:
+                    for element in data["integration_ids"]:
+                        if len(element) == 7 and "wave" not in element.lower() and "old" not in element.lower():
+                            data["_id"] = element
+                            paged_result.append(data)
+                        else:
+                            pass
+                except Exception:
+                    for element in data:
                         paged_result.append(data)
-                    else:
-                        pass
-
+                    
         except IndexError as e:
             logger.error(f"failed with error {e}")
         except KeyError as e:
